@@ -218,11 +218,11 @@ SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
 mkdir $SCRIPTS_DIR
 
 echo "Generating agent SH script"
-echo "$SH_COMMAND_LINE" > "$OCS_PACKAGE_DIR/scripts/execute_agent.sh"
+echo "$SH_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/execute_agent.sh
 
 if [ ${OCS_AGENT_CRONTAB} != 0 ];then
 	echo "Generating crontab SH script"
-	echo "$CRON_COMMAND_LINE" > "$OCS_PACKAGE_DIR/scripts/create_crontab.sh"
+	echo "$CRON_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/create_crontab.sh
 fi
 
 # Install finished, tar step
@@ -234,4 +234,6 @@ echo "Packaging successfully done"
 echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz"
 
 echo "After deployment performed on another system, launch OCS Agent like this"
-echo "${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent"
+echo "${OCS_INSTALL_DIR}/scripts/execute_agent.sh"
+echo "You can also, launch manually this command with all arguments"
+echo "$SH_COMMAND_LINE"
