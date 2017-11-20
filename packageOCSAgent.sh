@@ -185,7 +185,9 @@ echo $DISTIB_MAJOR_VERSION
 # Create addtional file (ParserDetails.ini) to avoid error message when executing agent
 touch ${PARSER_INI_PATH}
 
-# Create SH File with all agent configuration from packageOCSAgent.config 
+# Create SH File with all agent configuration from packageOCSAgent.config
+
+# If crontab required from packageOCSAgent.config, create a crontab each X hours
 
 # Install finished, tar step
 echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
