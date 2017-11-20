@@ -59,6 +59,7 @@ mkdir -p $OCS_INSTALL_DIR/perl
 mkdir $OCS_PACKAGE_DIR/data
 [ -d $OCS_PACKAGE_DIR/work ] && rm -rf  $OCS_PACKAGE_DIR/work
 mkdir $OCS_PACKAGE_DIR/work
+[ -d $OCS_PACKAGE_DIR/scripts ] && rm -rf  $OCS_PACKAGE_DIR/scripts
 
 
 cd $OCS_PACKAGE_DIR/data
@@ -169,7 +170,6 @@ fi
 
  # End Nmap compilation
 
-
 # Guess which Linux Distribution and which Distribution major version it is
 if [ -f /etc/os-release ];then
 	LINUX_DISTRIB=$(grep "^ID=" /etc/os-release | awk -F"=" '{print $2}' | tr -d "\"")
@@ -186,8 +186,46 @@ echo $DISTIB_MAJOR_VERSION
 touch ${PARSER_INI_PATH}
 
 # Create SH File with all agent configuration from packageOCSAgent.config
+SH_COMMAND_LINE="${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent --tag=${OCS_AGENT_TAG} "
+
+if [ ${OCS_AGENT_LAZY} != 0 ];then
+	echo "Activating lazy mode"
+	SH_COMMAND_LINE+="--lazy "
+fi
+
+if [ ${OCS_SSL_ENABLED} != 0 ];then
+	echo "Activating SSL inventory"
+	mkdir ${OCS_INSTALL_DIR}
+	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "${OCS_INSTALL_DIR}/files/cacert.pem"
+	SH_COMMAND_LINE+="--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
+fi
+
+if [ ${OCS_LOG_FILE} != 0 ];then
+	echo "Activating log generation"
+	SH_COMMAND_LINE+="--logfile=${OCS_LOG_FILE_PATH} "
+fi
 
 # If crontab required from packageOCSAgent.config, create a crontab each X hours
+if [ ${OCS_AGENT_CRONTAB} != 0 ];then
+	CRON_COMMAND_LINE="crontab -l | { cat; echo '0 ${OCS_AGENT_CRONTAB_HOUR} 0 0 0 ${SH_COMMAND_LINE}'; } | crontab -"
+	echo "Crontab generated : ${CRON_COMMAND_LINE}"
+fi
+
+echo "Command generated for agent : ${SH_COMMAND_LINE}"
+
+# Generate Agent SH to be executed
+
+echo "Creating scripts folder"
+SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
+mkdir ${SCRIPTS_DIR}
+
+echo "Generating agent SH script"
+echo "${SH_COMMAND_LINE}" > "${SCRIPTS_DIR}/execute_agent.sh"
+
+if [ ${OCS_AGENT_CRONTAB} != 0 ];then
+	echo "Generating crontab SH script"
+	echo "${CRON_COMMAND_LINE}" > "${SCRIPTS_DIR}/create_crontab.sh"
+fi
 
 # Install finished, tar step
 echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
@@ -198,4 +236,4 @@ echo "Packaging successfully done"
 echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz"
 
 echo "After deployment performed on another system, launch OCS Agent like this"
-echo "${OCS_INSTALL_DIR}/ocsinventory-agent -s http://ocs-inventory-server/ocsinventory --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent"
+echo "${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent"
