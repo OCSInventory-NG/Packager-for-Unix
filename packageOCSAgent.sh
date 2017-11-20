@@ -60,7 +60,7 @@ mkdir $OCS_PACKAGE_DIR/data
 [ -d $OCS_PACKAGE_DIR/work ] && rm -rf  $OCS_PACKAGE_DIR/work
 mkdir $OCS_PACKAGE_DIR/work
 [ -d $OCS_PACKAGE_DIR/scripts ] && rm -rf  $OCS_PACKAGE_DIR/scripts
-
+mkdir $OCS_PACKAGE_DIR/scripts
 
 cd $OCS_PACKAGE_DIR/data
 $DOWNLOAD_TOOL $CURL_OPTS $PERL_DL_LINK
@@ -195,8 +195,7 @@ fi
 
 if [ ${OCS_SSL_ENABLED} != 0 ];then
 	echo "Activating SSL inventory"
-	mkdir ${OCS_INSTALL_DIR}
-	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "${OCS_INSTALL_DIR}/files/cacert.pem"
+	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "$OCS_PACKAGE_DIR/files/cacert.pem"
 	SH_COMMAND_LINE+="--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
 fi
 
@@ -214,17 +213,16 @@ fi
 echo "Command generated for agent : ${SH_COMMAND_LINE}"
 
 # Generate Agent SH to be executed
-
 echo "Creating scripts folder"
 SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
 mkdir $SCRIPTS_DIR
 
 echo "Generating agent SH script"
-echo "$SH_COMMAND_LINE" > "$SCRIPTS_DIR/execute_agent.sh"
+echo "$SH_COMMAND_LINE" > "$OCS_PACKAGE_DIR/scripts/execute_agent.sh"
 
 if [ ${OCS_AGENT_CRONTAB} != 0 ];then
 	echo "Generating crontab SH script"
-	echo "$CRON_COMMAND_LINE" > "$SCRIPTS_DIR/create_crontab.sh"
+	echo "$CRON_COMMAND_LINE" > "$OCS_PACKAGE_DIR/scripts/create_crontab.sh"
 fi
 
 # Install finished, tar step
