@@ -43,8 +43,14 @@ if [ $(which curl) ];then
 elif [ $(which wget) ];then
 	DOWNLOAD_TOOL=wget
 else
-	echo "Neither curl or wget is installed, plesae install it and run again the packager"
-	exit 1
+	echo "Neither curl or wget is installed, installing curl ..."
+	if [ -f /etc/redhat-release ];then
+        	yum install curl
+	elif [ -f /etc/debian_version ];then
+        	apt-get install curl
+	fi
+        DOWNLOAD_TOOL=curl
+        CURL_OPTS="-s -L --remote-name"
 fi
 
 [ -d $OCS_INSTALL_DIR ] && rm -rf $OCS_INSTALL_DIR
@@ -176,6 +182,10 @@ fi
 echo $LINUX_DISTRIB
 echo $DISTIB_MAJOR_VERSION
 
+# Create addtional file (ParserDetails.ini) to avoid error message when executing agent
+touch ${PARSER_INI_PATH}
+
+# Install finished, tar step
 echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
 
 tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz $OCS_INSTALL_DIR
