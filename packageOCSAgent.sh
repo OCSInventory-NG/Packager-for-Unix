@@ -217,14 +217,14 @@ echo "Command generated for agent : ${SH_COMMAND_LINE}"
 
 echo "Creating scripts folder"
 SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
-mkdir ${SCRIPTS_DIR}
+mkdir $SCRIPTS_DIR
 
 echo "Generating agent SH script"
-echo "${SH_COMMAND_LINE}" > "${SCRIPTS_DIR}/execute_agent.sh"
+echo "$SH_COMMAND_LINE" > "$SCRIPTS_DIR/execute_agent.sh"
 
 if [ ${OCS_AGENT_CRONTAB} != 0 ];then
 	echo "Generating crontab SH script"
-	echo "${CRON_COMMAND_LINE}" > "${SCRIPTS_DIR}/create_crontab.sh"
+	echo "$CRON_COMMAND_LINE" > "$SCRIPTS_DIR/create_crontab.sh"
 fi
 
 # Install finished, tar step
