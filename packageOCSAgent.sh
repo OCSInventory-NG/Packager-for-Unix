@@ -19,7 +19,7 @@ if [ $PROXY_HOST ];then
 	export http_proxy=http://${PROXY_HOST}:${PROXY_PORT}
 	export https_proxy=http://${PROXY_HOST}:${PROXY_PORT}
 fi
-	
+
 echo "Install compilation tools"
 if [ -f /etc/redhat-release ];then
 	[ $(which gcc) ] || yum install -y gcc
@@ -166,7 +166,7 @@ if [ $(echo $?) != 0 ];then
 	echo "Please check the log file $LOG_FILE"
 	exit 1
 fi
- 
+
  # End Nmap compilation
 
 
@@ -185,14 +185,15 @@ echo $DISTIB_MAJOR_VERSION
 # Create addtional file (ParserDetails.ini) to avoid error message when executing agent
 touch ${PARSER_INI_PATH}
 
+# Create SH File with all agent configuration from packageOCSAgent.config 
+
 # Install finished, tar step
 echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
 
 tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz $OCS_INSTALL_DIR
 
 echo "Packaging successfully done"
-echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz" 
+echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz"
 
 echo "After deployment performed on another system, launch OCS Agent like this"
 echo "${OCS_INSTALL_DIR}/ocsinventory-agent -s http://ocs-inventory-server/ocsinventory --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent"
-
