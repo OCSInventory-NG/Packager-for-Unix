@@ -21,14 +21,22 @@ if [ $PROXY_HOST ];then
 fi
 
 echo "Install compilation tools"
-if [ -f /etc/redhat-release ];then
-	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || yum install -y gcc make rsync gcc-c++
-elif [ -f /etc/debian_version ];then
-	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || apt update && apt install -y build-essential rsync
-elif [ -f /etc/fedora-release ];then
-	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || dnf install -y gcc gcc make rsync gcc-c++
-else
-	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || echo "gcc, make and rsync are needed to continue : please install them before continue" && exit 1
+[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || INSTALL_PACKAGE=1
+
+if [ $INSTALL_PACKAGE == 1 ];then
+	if [ -f /etc/redhat-release ];then
+		yum install -y gcc make rsync gcc-c++ || ERROR_PACKAGE=1
+	elif [ -f /etc/debian_version ];then
+		apt update && apt install -y build-essential rsync || ERROR_PACKAGE=1
+	elif [ -f /etc/fedora-release ];then
+		dnf install -y gcc gcc make rsync gcc-c++ || ERROR_PACKAGE=1
+	else
+		echo "gcc, make and rsync are needed to continue : please install them before continue" && exit 1
+	fi
+	if [ $ERROR_PACKAGE == 1 ];then
+		echo "Error while downloading packages dependancies"
+		exit 1
+	fi
 fi
 
 if [ $(which curl) ];then
