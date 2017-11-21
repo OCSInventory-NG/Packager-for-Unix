@@ -213,10 +213,6 @@ fi
 echo "Command generated for agent : ${SH_COMMAND_LINE}"
 
 # Generate Agent SH to be executed
-echo "Creating scripts folder"
-SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
-mkdir $SCRIPTS_DIR
-
 echo "Generating agent SH script"
 echo "$SH_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/execute_agent.sh
 
