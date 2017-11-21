@@ -38,19 +38,11 @@ Output is a tar/gz archive: ocsinventory-agent_*LinuxDistribution*_*MajorVersion
 
 ## Todo
 
-1. Add HTTPS Support
-2. Add interactive configuration
-3. Add possibility to add cron on first run on target system
-4. Fix known issues
-5. Bypass current limitations
+1. Add interactive configuration
+2. Bypass current limitations
 
 ## Current Limitation
 
 1. Package does not embed SSL Perl livrary to connect to OCS Server with SSL.
 2. nmap command line path is not referenced in Perl module, thus, IP Discovery function does not work
 
-## Known Issue
-
-Warning with Perl XML parser when executing the OCS agent:
-*could not find ParserDetails.ini in /opt/ocsinventory/perl/lib/5.26.0/XML/SAX*
-(This warning does not prevent the agent from working as expected)
