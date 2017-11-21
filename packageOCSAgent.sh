@@ -32,6 +32,11 @@ elif [ -f /etc/debian_version ];then
 	[ $(which make) ] || apt-get install -y make
 	[ $(which rsync) ] || apt-get install -y rsync
 	[ $(which g++) ] || apt-get install -y g++
+elif [ -f /etc/fedora-release ];then
+	[ $(which gcc) ] || dnf install -y gcc
+	[ $(which make) ] || dnf install -y make
+	[ $(which rsync) ] || dnf install -y rsync
+	[ $(which g++) ] || dnf install -y gcc-c++
 else
 	echo "Unknown Linux distribution"
 	exit 1
@@ -61,6 +66,8 @@ mkdir $OCS_PACKAGE_DIR/data
 mkdir $OCS_PACKAGE_DIR/work
 [ -d $OCS_PACKAGE_DIR/scripts ] && rm -rf  $OCS_PACKAGE_DIR/scripts
 mkdir $OCS_PACKAGE_DIR/scripts
+[ -d $OCS_PACKAGE_DIR/files ] && rm -rf  $OCS_PACKAGE_DIR/files
+mkdir $OCS_PACKAGE_DIR/files
 
 cd $OCS_PACKAGE_DIR/data
 $DOWNLOAD_TOOL $CURL_OPTS $PERL_DL_LINK
@@ -186,6 +193,10 @@ echo $DISTIB_MAJOR_VERSION
 touch ${PARSER_INI_PATH}
 
 # Create SH File with all agent configuration from packageOCSAgent.config
+echo "Creating scripts folder"
+SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
+mkdir $SCRIPTS_DIR
+
 SH_COMMAND_LINE="${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent --tag=${OCS_AGENT_TAG} "
 
 if [ "${OCS_AGENT_LAZY}" != 0 ];then
@@ -194,8 +205,13 @@ if [ "${OCS_AGENT_LAZY}" != 0 ];then
 fi
 
 if [ "${OCS_SSL_ENABLED}" != 0 ];then
+	# Create file dir on destination
+	echo "Creating files folder"
+	FILES_DIR="${OCS_INSTALL_DIR}/files"
+	mkdir $FILES_DIR
+	# Copy certificate
 	echo "Activating SSL inventory"
-	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "$OCS_PACKAGE_DIR/files/cacert.pem"
+	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "${OCS_INSTALL_DIR}/files/cacert.pem"
 	SH_COMMAND_LINE=$SH_COMMAND_LINE"--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
 fi
 
@@ -215,10 +231,12 @@ echo "Command generated for agent : ${SH_COMMAND_LINE}"
 # Generate Agent SH to be executed
 echo "Generating agent SH script"
 echo "$SH_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/execute_agent.sh
+cp $OCS_PACKAGE_DIR/scripts/execute_agent.sh $OCS_INSTALL_DIR/scripts/execute_agent.sh
 
 if [ ${OCS_AGENT_CRONTAB} != 0 ];then
 	echo "Generating crontab SH script"
 	echo "$CRON_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/create_crontab.sh
+	cp $OCS_PACKAGE_DIR/scripts/create_crontab.sh $OCS_INSTALL_DIR/scripts/create_crontab.sh
 fi
 
 # Install finished, tar step
