@@ -22,21 +22,11 @@ fi
 
 echo "Install compilation tools"
 if [ -f /etc/redhat-release ];then
-	[ $(which gcc) ] || yum install -y gcc
-	[ $(which make) ] || yum install -y make
-	[ $(which rsync) ] || yum install -y rsync
-	[ $(which g++) ] || yum install -y  gcc-c++
+	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || yum install -y gcc make rsync gcc-c++
 elif [ -f /etc/debian_version ];then
-	apt-get update
-	[ $(which gcc) ] || apt-get install -y gcc
-	[ $(which make) ] || apt-get install -y make
-	[ $(which rsync) ] || apt-get install -y rsync
-	[ $(which g++) ] || apt-get install -y g++
+	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || apt update && apt install -y build-essential rsync
 elif [ -f /etc/fedora-release ];then
-	[ $(which gcc) ] || dnf install -y gcc
-	[ $(which make) ] || dnf install -y make
-	[ $(which rsync) ] || dnf install -y rsync
-	[ $(which g++) ] || dnf install -y gcc-c++
+	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || dnf install -y gcc gcc make rsync gcc-c++
 else
 	echo "Unknown Linux distribution"
 	exit 1
