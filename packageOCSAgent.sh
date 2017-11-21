@@ -21,6 +21,8 @@ if [ $PROXY_HOST ];then
 fi
 
 echo "Install compilation tools"
+INSTALL_PACKAGE=0
+ERROR_PACKAGE=0
 [ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || INSTALL_PACKAGE=1
 
 if [ $INSTALL_PACKAGE == 1 ];then
@@ -174,17 +176,12 @@ fi
 
  # End Nmap compilation
 
-# Guess which Linux Distribution and which Distribution major version it is
+# Guess which os do use
+UNAME=$(uname -s -r -m -o)
 if [ -f /etc/os-release ];then
 	LINUX_DISTRIB=$(grep "^ID=" /etc/os-release | awk -F"=" '{print $2}' | tr -d "\"")
 	DISTIB_MAJOR_VERSION=$(grep "^VERSION_ID=" /etc/os-release | awk -F"=" '{print $2}' | tr -d "\"" | cut -d. -f1)
-else
-	LINUX_DISTRIB="UnknownLinux"
-	DISTIB_MAJOR_VERSION="UnknownVersion"
 fi
-
-echo $LINUX_DISTRIB
-echo $DISTIB_MAJOR_VERSION
 
 # Create addtional file (ParserDetails.ini) to avoid error message when executing agent
 touch ${PARSER_INI_PATH}
@@ -237,12 +234,18 @@ if [ ${OCS_AGENT_CRONTAB} != 0 ];then
 fi
 
 # Install finished, tar step
-echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
+echo "$UNAME" > $OCS_INSTALL_DIR/os-version.txt
+if [ -n "$LINUX_DISTRIB" ];then
+	echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" >> $OCS_INSTALL_DIR/os-version.txt
+	PACKAGE_NAME="${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}"
+else
+	PACKAGE_NAME="${uname -s}-${uname -r}"
+fi
 
-tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz $OCS_INSTALL_DIR
+tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_$PACKAGE_NAME.tar.gz $OCS_INSTALL_DIR
 
 echo "Packaging successfully done"
-echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz"
+echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_$PACKAGE_NAME.tar.gz"
 
 echo "After deployment performed on another system, launch OCS Agent like this"
 echo "${OCS_INSTALL_DIR}/scripts/execute_agent.sh"
