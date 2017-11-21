@@ -24,6 +24,15 @@ The package embeds compiled Perl for the related OS, OCS Agent perl package, and
     * PERL_DL_LINK: Perl download link
     * OCSAGENT_DL_LINK: OCS Agent download link
     * NMAP_DL_LINK: Nmap download link
+    * OCS_AGENT_CRONTAB: ```[0-1]``` Create script to add crontab on system
+    * OCS_AGENT_CRONTAB_HOUR: How many hour between each crontab call
+    * OCS_AGENT_LAZY: ```[0-1]``` Activate lazy mode on Agent
+    * OCS_AGENT_TAG: Set default tag
+    * OCS_SERVER_URL: Set server URL
+    * OCS_SSL_ENABLED: ```[0-1]``` Enable SSL check
+    * OCS_SSL_CERTIFICATE_FULL_PATH: Path to the certificate
+    * OCS_LOG_FILE: ```[0-1]``` Enable file logging feature
+    * OCS_LOG_FILE_PATH: Set the log path file
 * PerlModulesDownloadList.txt: download URL for all Perl modules dependencies
 * packageOCSAgent.sh: packager script
 
@@ -38,11 +47,8 @@ Output is a tar/gz archive: ocsinventory-agent_*LinuxDistribution*_*MajorVersion
 
 ## Todo
 
-1. Add interactive configuration
-2. Bypass current limitations
+1. Bypass current limitations
 
 ## Current Limitation
 
-1. Package does not embed SSL Perl livrary to connect to OCS Server with SSL.
-2. nmap command line path is not referenced in Perl module, thus, IP Discovery function does not work
-
+1. nmap command line path is not referenced in Perl module, thus, IP Discovery function does not work
