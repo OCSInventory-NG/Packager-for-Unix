@@ -28,8 +28,7 @@ elif [ -f /etc/debian_version ];then
 elif [ -f /etc/fedora-release ];then
 	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || dnf install -y gcc gcc make rsync gcc-c++
 else
-	echo "Unknown Linux distribution"
-	exit 1
+	[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || echo "gcc, make and rsync are needed to continue : please install them before continue" && exit 1
 fi
 
 if [ $(which curl) ];then
