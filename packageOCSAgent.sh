@@ -188,24 +188,24 @@ touch ${PARSER_INI_PATH}
 # Create SH File with all agent configuration from packageOCSAgent.config
 SH_COMMAND_LINE="${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent --tag=${OCS_AGENT_TAG} "
 
-if [ ${OCS_AGENT_LAZY} != 0 ];then
+if [ "${OCS_AGENT_LAZY}" != 0 ];then
 	echo "Activating lazy mode"
-	SH_COMMAND_LINE+="--lazy "
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--lazy "
 fi
 
-if [ ${OCS_SSL_ENABLED} != 0 ];then
+if [ "${OCS_SSL_ENABLED}" != 0 ];then
 	echo "Activating SSL inventory"
 	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "$OCS_PACKAGE_DIR/files/cacert.pem"
-	SH_COMMAND_LINE+="--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
 fi
 
-if [ ${OCS_LOG_FILE} != 0 ];then
+if [ "${OCS_LOG_FILE}" != 0 ];then
 	echo "Activating log generation"
-	SH_COMMAND_LINE+="--logfile=${OCS_LOG_FILE_PATH} "
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--logfile=${OCS_LOG_FILE_PATH} "
 fi
 
 # If crontab required from packageOCSAgent.config, create a crontab each X hours
-if [ ${OCS_AGENT_CRONTAB} != 0 ];then
+if [ "${OCS_AGENT_CRONTAB}" != 0 ];then
 	CRON_COMMAND_LINE="crontab -l | { cat; echo '0 ${OCS_AGENT_CRONTAB_HOUR} 0 0 0 ${SH_COMMAND_LINE}'; } | crontab -"
 	echo "Crontab generated : ${CRON_COMMAND_LINE}"
 fi
