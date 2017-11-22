@@ -36,7 +36,7 @@ if [ $INSTALL_PACKAGE == 1 ];then
 		echo "gcc, make and rsync are needed to continue : please install them before continue" && exit 1
 	fi
 	if [ $ERROR_PACKAGE == 1 ];then
-		echo "Error while downloading packages dependancies"
+		echo "Error while downloading packages dependencies"
 		exit 1
 	fi
 fi
