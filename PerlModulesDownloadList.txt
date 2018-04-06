@@ -16,3 +16,6 @@ http://search.cpan.org/CPAN/authors/id/R/RJ/RJBS/Data-UUID-1.221.tar.gz
 http://search.cpan.org/CPAN/authors/id/M/MU/MUIR/modules/Net-Netmask-1.9022.tar.gz
 http://search.cpan.org/CPAN/authors/id/B/BJ/BJOERN/XML-SAX-Expat-0.40.tar.gz
 http://search.cpan.org/CPAN/authors/id/A/AP/APERSAUD/Nmap-Parser-1.36.tar.gz
+http://search.cpan.org/CPAN/authors/id/O/OA/OALDERS/LWP-Protocol-https-6.07.tar.gz
+http://search.cpan.org/CPAN/authors/id/D/DM/DMITRI/Proc-PID-File-1.28.tar.gz
+http://search.cpan.org/CPAN/authors/id/D/DT/DTOWN/Net-SNMP-v6.0.1.tar.gz

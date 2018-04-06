@@ -19,22 +19,26 @@ if [ $PROXY_HOST ];then
 	export http_proxy=http://${PROXY_HOST}:${PROXY_PORT}
 	export https_proxy=http://${PROXY_HOST}:${PROXY_PORT}
 fi
-	
+
 echo "Install compilation tools"
-if [ -f /etc/redhat-release ];then
-	[ $(which gcc) ] || yum install -y gcc
-	[ $(which make) ] || yum install -y make
-	[ $(which rsync) ] || yum install -y rsync
-	[ $(which g++) ] || yum install -y  gcc-c++
-elif [ -f /etc/debian_version ];then
-	apt-get update
-	[ $(which gcc) ] || apt-get install -y gcc
-	[ $(which make) ] || apt-get install -y make
-	[ $(which rsync) ] || apt-get install -y rsync
-	[ $(which g++) ] || apt-get install -y g++
-else
-	echo "Unknown Linux distribution"
-	exit 1
+INSTALL_PACKAGE=0
+ERROR_PACKAGE=0
+[ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || INSTALL_PACKAGE=1
+
+if [ $INSTALL_PACKAGE == 1 ];then
+	if [ -f /etc/redhat-release ];then
+		yum install -y gcc make rsync gcc-c++ || ERROR_PACKAGE=1
+	elif [ -f /etc/debian_version ];then
+		apt update && apt install -y build-essential rsync || ERROR_PACKAGE=1
+	elif [ -f /etc/fedora-release ];then
+		dnf install -y gcc gcc make rsync gcc-c++ || ERROR_PACKAGE=1
+	else
+		echo "gcc, make and rsync are needed to continue : please install them before continue" && exit 1
+	fi
+	if [ $ERROR_PACKAGE == 1 ];then
+		echo "Error while downloading packages dependencies"
+		exit 1
+	fi
 fi
 
 if [ $(which curl) ];then
@@ -43,8 +47,14 @@ if [ $(which curl) ];then
 elif [ $(which wget) ];then
 	DOWNLOAD_TOOL=wget
 else
-	echo "Neither curl or wget is installed, plesae install it and run again the packager"
-	exit 1
+	echo "Neither curl or wget is installed, installing curl ..."
+	if [ -f /etc/redhat-release ];then
+        	yum install curl
+	elif [ -f /etc/debian_version ];then
+        	apt-get install curl
+	fi
+        DOWNLOAD_TOOL=curl
+        CURL_OPTS="-s -L --remote-name"
 fi
 
 [ -d $OCS_INSTALL_DIR ] && rm -rf $OCS_INSTALL_DIR
@@ -53,7 +63,10 @@ mkdir -p $OCS_INSTALL_DIR/perl
 mkdir $OCS_PACKAGE_DIR/data
 [ -d $OCS_PACKAGE_DIR/work ] && rm -rf  $OCS_PACKAGE_DIR/work
 mkdir $OCS_PACKAGE_DIR/work
-
+[ -d $OCS_PACKAGE_DIR/scripts ] && rm -rf  $OCS_PACKAGE_DIR/scripts
+mkdir $OCS_PACKAGE_DIR/scripts
+[ -d $OCS_PACKAGE_DIR/files ] && rm -rf  $OCS_PACKAGE_DIR/files
+mkdir $OCS_PACKAGE_DIR/files
 
 cd $OCS_PACKAGE_DIR/data
 $DOWNLOAD_TOOL $CURL_OPTS $PERL_DL_LINK
@@ -160,29 +173,81 @@ if [ $(echo $?) != 0 ];then
 	echo "Please check the log file $LOG_FILE"
 	exit 1
 fi
- 
+
  # End Nmap compilation
 
-
-# Guess which Linux Distribution and which Distribution major version it is
+# Guess which os do use
+UNAME=$(uname -s -r -m -o)
 if [ -f /etc/os-release ];then
 	LINUX_DISTRIB=$(grep "^ID=" /etc/os-release | awk -F"=" '{print $2}' | tr -d "\"")
 	DISTIB_MAJOR_VERSION=$(grep "^VERSION_ID=" /etc/os-release | awk -F"=" '{print $2}' | tr -d "\"" | cut -d. -f1)
-else
-	LINUX_DISTRIB="UnknownLinux"
-	DISTIB_MAJOR_VERSION="UnknownVersion"
 fi
 
-echo $LINUX_DISTRIB
-echo $DISTIB_MAJOR_VERSION
+# Create addtional file (ParserDetails.ini) to avoid error message when executing agent
+touch ${PARSER_INI_PATH}
 
-echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" > $OCS_INSTALL_DIR/os-version.txt
+# Create SH File with all agent configuration from packageOCSAgent.config
+echo "Creating scripts folder"
+SCRIPTS_DIR="${OCS_INSTALL_DIR}/scripts"
+mkdir $SCRIPTS_DIR
 
-tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz $OCS_INSTALL_DIR
+SH_COMMAND_LINE="${OCS_INSTALL_DIR}/ocsinventory-agent -s ${OCS_SERVER_URL} --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent --tag=${OCS_AGENT_TAG} "
+
+if [ "${OCS_AGENT_LAZY}" != 0 ];then
+	echo "Activating lazy mode"
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--lazy "
+fi
+
+if [ "${OCS_SSL_ENABLED}" != 0 ];then
+	# Create file dir on destination
+	echo "Creating files folder"
+	FILES_DIR="${OCS_INSTALL_DIR}/files"
+	mkdir $FILES_DIR
+	# Copy certificate
+	echo "Activating SSL inventory"
+	cp ${OCS_SSL_CERTIFICATE_FULL_PATH} "${OCS_INSTALL_DIR}/files/cacert.pem"
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--ca=${OCS_INSTALL_DIR}/files/cacert.pem "
+fi
+
+if [ "${OCS_LOG_FILE}" != 0 ];then
+	echo "Activating log generation"
+	SH_COMMAND_LINE=$SH_COMMAND_LINE"--logfile=${OCS_LOG_FILE_PATH} "
+fi
+
+# If crontab required from packageOCSAgent.config, create a crontab each X hours
+if [ "${OCS_AGENT_CRONTAB}" != 0 ];then
+	CRON_COMMAND_LINE="crontab -l | { cat; echo '0 ${OCS_AGENT_CRONTAB_HOUR} 0 0 0 ${SH_COMMAND_LINE}'; } | crontab -"
+	echo "Crontab generated : ${CRON_COMMAND_LINE}"
+fi
+
+echo "Command generated for agent : ${SH_COMMAND_LINE}"
+
+# Generate Agent SH to be executed
+echo "Generating agent SH script"
+echo "$SH_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/execute_agent.sh
+cp $OCS_PACKAGE_DIR/scripts/execute_agent.sh $OCS_INSTALL_DIR/scripts/execute_agent.sh
+
+if [ ${OCS_AGENT_CRONTAB} != 0 ];then
+	echo "Generating crontab SH script"
+	echo "$CRON_COMMAND_LINE" > $OCS_PACKAGE_DIR/scripts/create_crontab.sh
+	cp $OCS_PACKAGE_DIR/scripts/create_crontab.sh $OCS_INSTALL_DIR/scripts/create_crontab.sh
+fi
+
+# Install finished, tar step
+echo "$UNAME" > $OCS_INSTALL_DIR/os-version.txt
+if [ -n "$LINUX_DISTRIB" ];then
+	echo "$LINUX_DISTRIB $DISTIB_MAJOR_VERSION" >> $OCS_INSTALL_DIR/os-version.txt
+	PACKAGE_NAME="${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}"
+else
+	PACKAGE_NAME="${uname -s}-${uname -r}"
+fi
+
+tar zcf $OCS_PACKAGE_DIR/ocsinventory-agent_$PACKAGE_NAME.tar.gz $OCS_INSTALL_DIR
 
 echo "Packaging successfully done"
-echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_${LINUX_DISTRIB}-${DISTIB_MAJOR_VERSION}.tar.gz" 
+echo "Package is $OCS_PACKAGE_DIR/ocsinventory-agent_$PACKAGE_NAME.tar.gz"
 
 echo "After deployment performed on another system, launch OCS Agent like this"
-echo "${OCS_INSTALL_DIR}/ocsinventory-agent -s http://ocs-inventory-server/ocsinventory --basevardir=${OCS_INSTALL_DIR}/var/lib/ocsinventory-agent"
-
+echo "${OCS_INSTALL_DIR}/scripts/execute_agent.sh"
+echo "You can also, launch manually this command with all arguments"
+echo "$SH_COMMAND_LINE"
