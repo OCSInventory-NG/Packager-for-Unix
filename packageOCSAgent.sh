@@ -25,7 +25,7 @@ INSTALL_PACKAGE=0
 ERROR_PACKAGE=0
 [ $(which gcc) ] && [ $(which make) ] && [ $(which rsync) ] && [ $(which g++) ] || INSTALL_PACKAGE=1
 
-if [ $INSTALL_PACKAGE == 1 ];then
+if [ $INSTALL_PACKAGE = 1 ];then
 	if [ -f /etc/redhat-release ];then
 		yum install -y gcc make rsync gcc-c++ || ERROR_PACKAGE=1
 	elif [ -f /etc/debian_version ];then
