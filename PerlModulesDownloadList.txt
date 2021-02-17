@@ -19,3 +19,6 @@ http://search.cpan.org/CPAN/authors/id/A/AP/APERSAUD/Nmap-Parser-1.36.tar.gz
 http://search.cpan.org/CPAN/authors/id/O/OA/OALDERS/LWP-Protocol-https-6.07.tar.gz
 http://search.cpan.org/CPAN/authors/id/D/DM/DMITRI/Proc-PID-File-1.28.tar.gz
 http://search.cpan.org/CPAN/authors/id/D/DT/DTOWN/Net-SNMP-v6.0.1.tar.gz
+https://cpan.metacpan.org/authors/id/G/GR/GROUSSE/Parse-EDID-1.0.7.tar.gz
+https://cpan.metacpan.org/authors/id/C/CH/CHRISN/Net-SSLeay-1.88.tar.gz
+https://cpan.metacpan.org/authors/id/S/SU/SULLR/IO-Socket-SSL-2.068.tar.gz
