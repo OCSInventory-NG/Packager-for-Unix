@@ -49,9 +49,9 @@ elif [ $(which wget) ];then
 else
 	echo "Neither curl or wget is installed, installing curl ..."
 	if [ -f /etc/redhat-release ];then
-        	yum install curl
+        	yum install -y curl
 	elif [ -f /etc/debian_version ];then
-        	apt-get install curl
+        	apt-get install -y curl
 	fi
         DOWNLOAD_TOOL=curl
         CURL_OPTS="-s -L --remote-name"
